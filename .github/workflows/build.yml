@@ -13,8 +13,30 @@ jobs:
 
     strategy:
       matrix:
-        goos: [linux, windows, darwin]
-        goarch: [amd64, arm64]
+        include:
+          - goos: linux
+            goarch: amd64
+
+          - goos: linux
+            goarch: arm64
+
+          - goos: windows
+            goarch: amd64
+
+          - goos: windows
+            goarch: arm64
+
+          - goos: darwin
+            goarch: amd64
+
+          - goos: darwin
+            goarch: arm64
+
+          - goos: android
+            goarch: arm64
+
+          - goos: android
+            goarch: amd64
 
     steps:
       - uses: actions/checkout@v4
@@ -27,13 +49,18 @@ jobs:
         env:
           GOOS: ${{ matrix.goos }}
           GOARCH: ${{ matrix.goarch }}
+          CGO_ENABLED: 0
         run: |
           mkdir -p build
+
           EXT=""
           if [ "${{ matrix.goos }}" = "windows" ]; then
             EXT=".exe"
           fi
-          go build -o build/CFS-${{ matrix.goos }}-${{ matrix.goarch }}${EXT}
+
+          go build \
+            -ldflags="-s -w" \
+            -o build/CFS-${{ matrix.goos }}-${{ matrix.goarch }}${EXT}
 
       - name: Upload to Release
         uses: softprops/action-gh-release@v1
